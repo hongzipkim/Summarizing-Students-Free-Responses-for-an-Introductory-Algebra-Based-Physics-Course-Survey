@@ -92,7 +92,7 @@ def elbow(file_name: str, endpoint: int) -> plt:
 # use the following code to perform kmeans clustering
 def cluster(file_name: str , num_of_cluster: int) -> plt:
     """
-    K means clustering :D
+    Code for K means clustering.
     file_name is the name of the file that you want to analyze.
     num_of_cluster is the number of clusters you want your plot to have.
 
@@ -112,9 +112,12 @@ def cluster(file_name: str , num_of_cluster: int) -> plt:
     df["clusters"] = clusters
     return clusters
 
-# using tsne to lower the dimensions
-# this lower the dimensions of datapoint using t_sne
+# using t_SNE to lower the dimensions
+# this lower the dimensions of datapoint using t_SNE
 def lower_d(file_name: str):
+    """
+    Dimension reduction using t_SNE.
+    """
     df = Pd.pdframe(file_name)
     cdf = Pd.clean_df(df)
     tdf = Pd.tfidf_df(cdf)
@@ -130,6 +133,9 @@ def lower_d(file_name: str):
 
 # this lower the dimensions of datapoint using pca
 def lower_d_pca(file_name: str):
+    """
+    Dimension reduction using PCA.
+    """
     df = Pd.pdframe(file_name)
     cdf = Pd.clean_df(df)
     tdf = Pd.tfidf_df(cdf)
@@ -143,18 +149,6 @@ def lower_d_pca(file_name: str):
     df['x1'] = x1
     return x0, x1, pca_vecs
 
-def lower_d_kpca(file_name: str):
-    df = Pd.pdframe(file_name)
-    cdf = Pd.clean_df(df)
-    tdf = Pd.tfidf_df(cdf)
-    kpca = KernelPCA(kernel='rbf',fit_inverse_transform=True, gamma=2)
-    kpca_vecs = kpca.fit_transform(tdf.toarray())
-
-    x0 = kpca_vecs[:, 0]
-    x1 = kpca_vecs[:, 1]
-    df['x0'] = x0
-    df['x1'] = x1
-    return x0, x1, kpca_vecs
 
 def keywords_in_cluster(file_name: str, clusters, n_terms: int):
     """This function returns the keywords for each centroid of the KMeans"""
@@ -168,15 +162,15 @@ def keywords_in_cluster(file_name: str, clusters, n_terms: int):
         print('\nCluster {}'.format(i))
         print(','.join([terms[t] for t in np.argsort(r)[-n_terms:]])) # for each row of the dataframe, find the n terms that have the highest tf idf score
 """
+Example output:
 cluster_map_2019 = {0: "General Comments", 1: "Learning Gains", 2: "Class Activities", 3:"Homework", 4:"Participation", 5:"Learning Resources", 6:"Graded Assignments & Test", 7:"Practical", 8:"Applying Skills", 9:"Suggestions", 10:"Use of Piazza", 11:"Understanding of Class Content"}
 cluster_map_2020 = {0:"Course Structure", 1:"Supports", 2:"Learning Resources", 3:"Participation", 4:"Problem Solving", 5:"Study Methods", 6:"Applying Skills", 7:"Understanding of Class Content", 8:"Practical", 9:"Learning Gain", 10:"Online Class"}
 cluster_map_2021 = {0:"Graded Assignment & Test", 1:"Participation and Lecture Location", 2:"Understanding of Class Content", 3:"Practical", 4:"Learning Methods", 5:"General Comments", 6:"Attitude", 7:"Applying Skills", 8:"Learning Resources", 9:"Suggestions"}
-
-
 """
 
 # use the following code to display results from kmeans clustering
 # map clusters to appropriate labels
+# to use, please uncommented the code
 """
 df = Pd.pdframe("SALG-shorten-winter2019.CSV")
 cdf = Pd.clean_df(df)
@@ -230,31 +224,6 @@ def keywords_plot(keywords: list[tuple]):
     p.show(block=True)
 
 
-#Importing Libraries
-
-"""
-from wordcloud import WordCloud,STOPWORDS
-
-line = Pd.extract_all("SALG-shorten-winter2021.CSV")
-cl = Pd.one_long_string(line)
-cl = Pd.cl.lower()
-ct = Pd.clean_text(cl)
-cs = Pd.one_long_string(ct)
-
-
-wordcloud = WordCloud(width = 800, height = 800,
-                background_color = "white", max_words = 50,
-                min_font_size = 29).generate(cs)
- 
-# plot the WordCloud image                      
-plt.figure(figsize = (8, 8), facecolor = None)
-plt.imshow(wordcloud)
-plt.axis("off")
-plt.tight_layout(pad = 0)
- 
-plt.show()
-"""
-
 def nice_pf(file_name: str, num_of_cluster: int):
     """ This produce a data frame with the original student responses,
     the cleaned students' responses, the cluster, and the x0 and x1 component
@@ -273,17 +242,3 @@ def find_sentence(good_pf, location: int, word: str):
         if word in row:
             sentence.append(row)
     return sentence
-
-"""
-data = pdframe("SALG-shorten-winter2021.CSV")
-pf = nice_pf("SALG-shorten-winter2021.CSV", 10)
-find_sentence(pf, 0, "course")
-"""
-
-
-"""
-clustering = cluster("SALG-shorten-winter2019.CSV", 12)
-clustering = cluster("SALG-shorten-winter2020.CSV", 11)
-k = cluster("SALG-shorten-winter2021.CSV", 10)
-
-"""
