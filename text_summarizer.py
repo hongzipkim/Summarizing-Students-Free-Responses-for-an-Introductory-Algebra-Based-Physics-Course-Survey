@@ -47,6 +47,6 @@ average = int(sumValues / len(sentenceValue))
 
 summary = ''
 for sentence in sentences:
-    if (sentence in sentenceValue) and (sentenceValue[sentence] > (1.2 * average)):
+    if (sentence in sentenceValue) and (sentenceValue[sentence] > (1.3 * average)):
         summary += " " + sentence
 print(summary)
