@@ -181,8 +181,6 @@ def vectorization(text):
         1. string = one_long_string(open_file("wanted file",wanted column))
         2. vectorization(string)
 
-    And then you will have a nice(and huge) matrix that contained floats as its
-    elements.
     """
     x_text = clean_text(text)
     tfidfconvert = TfidfVectorizer(analyzer=clean_text).fit(x_text)
@@ -199,20 +197,8 @@ def pdframe(file_name: str):
 
 
 def preprocess_text(text: str, remove_stopwords: bool) -> str:
-    """This utility function sanitizes a string by:
-    - removing links
-    - removing special characters
-    - removing numbers
-    - removing stopwords
-    - transforming in lowercase
-    - removing excessive whitespaces
-    Args:
-        text (str): the input text you want to clean
-        remove_stopwords (bool): whether or not to remove stopwords
-    Returns:
-        str: the cleaned text
-
-    code from : https://medium.com/mlearning-ai/text-clustering-with-tf-idf-in-python-c94cd26a31e7
+    """
+    This function is for cleaning student responses, removing stopwords, links, number and special characters.
     """
 
     text = re.sub(r"http\S+", "", text)
@@ -237,6 +223,11 @@ def clean_df(df):
 
 
 def tfidf_df(df):
+    """
+    Getting the tf-idf of the input data frame.
+    
+    The output is a data frame as well.
+    """
     vectorizer = TfidfVectorizer(sublinear_tf=True, min_df=5, max_df=0.95)
     X = vectorizer.fit_transform(df['cleaned'])
     return X
