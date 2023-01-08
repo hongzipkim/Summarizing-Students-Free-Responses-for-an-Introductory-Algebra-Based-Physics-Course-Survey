@@ -18,6 +18,19 @@ text = Pd.one_long_string(get_sentence("SALG-shorten-winter2019.CSV"))
 stopWords = set(stopwords.words("english"))
 words = word_tokenize(text)
 
+
+"""
+Below is a citation for a portion of the code in this file.
+***************************************************************************************
+*    Title: Text Summarization in Python
+*    Author: Nitin Kumar
+*    Date: Nov 18, 2022
+*    Code version: Unknown
+*    Availability: https://www.mygreatlearning.com/blog/text-summarization-in-python/
+*
+***************************************************************************************
+"""
+
 freqTable = dict()
 for word in words:
     word = word.lower()
