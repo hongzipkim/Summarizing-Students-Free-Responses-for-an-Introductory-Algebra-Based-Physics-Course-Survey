@@ -53,7 +53,7 @@ def unique_word(file_name: str):
     return len(sorted(set(cleaned_text)))
 
 
-# use the following code in console to estiment how many clusters we need
+# use the following code in the console to estimate how many clusters we need
 # THE ELBOW METHOD
 
 def elbow(file_name: str, endpoint: int) -> plt:
@@ -178,4 +178,132 @@ def keywords(file_name: str, n_term: int):
     counting = Counter(cleaned_text)
     keyword = counting.most_common(n_term)
     return keyword
+
+##########################################################################################
+
+# here is the code for generating cluster results, I use 2019 data as an example here
+df = pdframe("SALG-shorten-winter2019.CSV")
+cdf = clean_df(df)
+tdf = tfidf_df(cdf)
+pca = PCA(n_components=10)
+X_pca = pca.fit_transform(tdf.toarray()) 
+tsne = TSNE(n_components=2, verbose=1, perplexity=30, n_iter=5000, learning_rate=100)
+tsne_results = tsne.fit_transform(X_pca)
+df["x0"] = tsne_results[:, 0]
+df["x1"] = tsne_results[:, 1]
+
+# initialize kmeans with num_of_cluster centroids
+kmeans = KMeans(n_clusters=12, random_state=50)
+# fit the model
+kmeans.fit(tsne_results)
+
+label=kmeans.predict(tsne_results)
+print('Silhouette Score(n=12):', silhouette_score(tsne_results,label)) 
+##########################################################################################
+
+# using elbow method, create a range of number of clusters to test
+K = range(1,15)
+
+# run k-means clustering for each k and save the inertia (sum of squared distances)
+inertias = []
+for k in K:
+    model = KMeans(n_clusters=k, random_state=50)
+    model.fit(tsne_results)
+    inertias.append(model.inertia_)
+
+# plot the elbow curve to find the optimal number of clusters, I use 2019 data as an example here, no significant elbow point was found.
+plt.plot(K, inertias, 'bx-')
+plt.xlabel('Number of Clusters (k)')
+plt.ylabel('Inertia')
+plt.title('Elbow Method for 2019 SALG Data')
+plt.show()
+
+##########################################################################################
+
+# Use the following to get sentences in clusters
+def get_sentence(file_name: str):
+  lst = extract_all(file_name)
+  cleaned_lst = []
+  for item in lst:
+    citem = item
+    if citem != "" and citem.isdigit() == False:
+      cleaned_lst.append(citem)
+  return cleaned_lst
+
+def nice_pf(file_name: str, num_of_cluster: int):
+    """ This produces a data frame with the original student responses,
+    the cleaned students' responses, the cluster, and the x0 and x1 component
+    of the vector.
+    """
+    df = pdframe(file_name)
+    cdf = clean_df(df) 
+    tdf = tfidf_df(cdf)
+    pca = PCA(n_components=10)
+    X_pca = pca.fit_transform(tdf.toarray()) 
+    tsne = TSNE(n_components=2, verbose=1, perplexity=30, n_iter=5000, learning_rate=100)
+    tsne_results = tsne.fit_transform(X_pca)
+    df["x0"] = tsne_results[:, 0]
+    df["x1"] = tsne_results[:, 1]
+
+    # initialize kmeans with num_of_cluster centroids
+    kmeans = KMeans(n_clusters=num_of_cluster, random_state=50)
+    # fit the model
+    kmeans.fit(tsne_results)
+
+    label=kmeans.predict(tsne_results)
+
+    cdf["clusters"] = label
+    return cdf
+
+def find_sentence(good_pf, location: int, word: str):
+  df = good_pf.loc[good_pf["clusters"] == location]
+  sentence = []
+  for row in df['Responses']:
+    if word in row:
+      sentence.append(row)
+  return sentence
+
+def get_sentence_in_cluster(good_pf, location):
+  df = good_pf.loc[good_pf["clusters"] == location]
+  sentence = []
+  for row in df['Responses']:
+    sentence.append(row)
+  return sentence
+
+##########################################################################################
+# This get sentences in clusters
+data = pdframe("SALG-shorten-winter2019.CSV")
+pf = nice_pf("SALG-shorten-winter2019.CSV", 12)
+i = 0
+while i < 12:
+  sec = get_sentence_in_cluster(pf, i)
+  print(len(sec))
+  print(sec)
+  print("______________________________")
+  i = i + 1
+
+# This gets the keywords in clusters
+keywords_in_cluster("SALG-shorten-winter2019.CSV", label, 30) # 30 is the number of keywords that we got for our paper, you can replace it with another number
+##########################################################################################
+# This is an example of plotting the clustering result
+df["Cluster"] = label
+
+cluster_map = {0: "Suggestions", 1: "Workload", 2: "Understanding of Concepts", 
+               3:"General Comments", 4:"Comments on the Subject", 5:"Helpfulness of Different Resources",
+               6:"Problem Solving", 7:"Learning Gains", 8:"Lecture & Textbook", 9:"Learning Methods", 
+               10:"Graded Assignments & Test", 11:"Participation"}
+
+df['Cluster'] = df['Cluster'].map(cluster_map)
+
+plt.figure(figsize=(10, 5))
+# set a title
+plt.title("K-means Clustering of PHY132 Students' Free Responses in Winter 2019 SALG Survey", fontdict={"fontsize": 18})
+# set axes names
+plt.xlabel("comp1 of t-SNE", fontdict={"fontsize": 16})
+plt.ylabel("comp2 of t-SNE", fontdict={"fontsize": 16})
+# create scatter plot with seaborn, where hue is the class used to group the data
+sns.scatterplot(data=df, x="x0", y='x1', hue='Cluster', palette = "Paired")
+plt.legend(bbox_to_anchor=(1.02, 1), loc='upper left', borderaxespad=0)
+plt.show()
+##########################################################################################
 
