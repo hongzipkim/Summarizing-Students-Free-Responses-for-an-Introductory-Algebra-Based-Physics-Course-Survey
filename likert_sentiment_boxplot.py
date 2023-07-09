@@ -1,5 +1,5 @@
 """
-This file contains the code to generate a side-by-side boxplot of Likert-scale and free responses of students, categorized into its survey sections
+This file contains the code to generate a side-by-side boxplot of Likert-scale and free responses of students, categorized into its survey sections.
 """
 import numpy as np
 import pandas as pd
