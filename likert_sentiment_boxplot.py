@@ -1,3 +1,6 @@
+"""
+This file contains the code to generate a side-by-side boxplot of Likert-scale and free responses of students, categorized into its survey sections
+"""
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
@@ -5,6 +8,7 @@ import statistical_analysis as sta
 import sentiment_analysis as senta
 import seaborn as sns
 from matplotlib.patches import PathPatch
+
 
 def get_the_total_data(title: str, first: str, second: str, third: str):
     winter2019_likert = sta.nested_list_of_likert(first)
@@ -43,6 +47,9 @@ def get_the_total_data(title: str, first: str, second: str, third: str):
 
 
 def new_boxplot():
+    """
+    Function to generate the boxplot
+    """
     topic1 = get_the_total_data('understanding', 'winter2019_understanding.csv', 'winter2020_understanding.csv',
                                 'winter2021_understanding.csv')
     topic2 = get_the_total_data('skill', 'winter2019_skill.csv', 'winter2020_skill.csv',
@@ -140,20 +147,3 @@ def adjust_box_widths(g, fac):
                     if np.all(l.get_xdata() == [xmin, xmax]):
                         l.set_xdata([xmin_new, xmax_new])
 
-
-def test(title: str, first: str):
-    winter2019_likert = sta.nested_list_of_likert(first)
-    winter2019_sentiment = senta.individual_sentiment(first)
-    likert = []
-    sentiment = []
-    group = []
-    for sent in winter2019_sentiment:
-        for each_sent in sent:
-            for like in winter2019_likert:
-                for each in like:
-                    likert.append(each)
-                    group.append(title)
-                    sentiment.append(each_sent)
-    total_data = {'group': group, 'likert': likert, 'sentiment': sentiment}
-    df = pd.DataFrame(data=total_data)
-    print(df)
