@@ -1,4 +1,4 @@
-"""Code to compare the sentiment of extreme vs. remaining responses"""
+"""Code to compare the sentiment of extreme (longer than one setence) vs. remaining responses, and generating a side-by-side boxplot."""
 import nltk
 from matplotlib import pyplot as plt
 from matplotlib.patches import PathPatch
@@ -48,6 +48,7 @@ def grand_list(first: str, second: str, third: str):
 
 
 def ind_sent(function: list[tuple]):
+    """Obtaining the sentiment score for each response"""
     sid_obj = SentimentIntensityAnalyzer()
     sentiment_list = []
     for item in function:
@@ -95,7 +96,10 @@ def get_the_total_data(title: str, function):
     return total_data
 
 
-def new_boxplot():
+def long_short_boxplot():
+    """
+    Function to generate the boxplot
+    """
     topic1 = get_the_total_data('long', grand_list('winter2019_understanding.csv', 'winter2020_understanding.csv',
                                                    'winter2021_understanding.csv')[0])
     topic2 = get_the_total_data('long',
