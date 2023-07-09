@@ -1,4 +1,3 @@
-
 from collections import Counter
 
 import matplotlib.pyplot as plt
@@ -6,12 +5,26 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 from sklearn.cluster import KMeans
-from sklearn.decomposition import PCA, KernelPCA
+from sklearn.decomposition import PCA
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.manifold import TSNE
+nltk.download('omw-1.4')
+nltk.download('punkt')
+from sklearn.decomposition import TruncatedSVD
+from sklearn.metrics import silhouette_score
+from scipy.spatial.distance import cdist
 
-import preprocess_data as Pd
-
+import csv
+from typing import List, Type
+import pandas as pd
+import nltk
+from nltk.corpus import stopwords
+from nltk.stem import WordNetLemmatizer
+from nltk.tokenize import word_tokenize, sent_tokenize
+import re
+nltk.download('stopwords')
+nltk.download('wordnet')
+import string
 
 ###############################################################################
 
@@ -34,9 +47,9 @@ def unique_word(file_name: str):
     This function returns the number of unique words in your input.
 
     """
-    lst = Pd.extract_all(file_name)
-    text = Pd.one_long_string(lst)
-    cleaned_text = Pd.clean_text(text)
+    lst = extract_all(file_name)
+    text = one_long_string(lst)
+    cleaned_text = clean_text(text)
     return len(sorted(set(cleaned_text)))
 
 
@@ -67,15 +80,15 @@ def elbow(file_name: str, endpoint: int) -> plt:
 
     K = range(1, endpoint)
 
-    ext = Pd.extract_all(file_name)
+    ext = extract_all(file_name)
 
-    s = Pd.one_long_string(ext)
+    s = one_long_string(ext)
 
-    c = Pd.clean_text(s)
+    c = clean_text(s)
 
-    l = Pd.one_long_string(c)
+    l = one_long_string(c)
 
-    vectorized_text = Pd.vectorization(l)
+    vectorized_text = vectorization(l)
 
     for k in K:
         km = KMeans(n_clusters=k)
@@ -90,17 +103,15 @@ def elbow(file_name: str, endpoint: int) -> plt:
 
 
 # use the following code to perform kmeans clustering
-def cluster(file_name: str , num_of_cluster: int) -> plt:
+def cluster(file_name: str , num_of_cluster: int):
     """
-    Code for K means clustering.
+    K means clustering :D
     file_name is the name of the file that you want to analyze.
     num_of_cluster is the number of clusters you want your plot to have.
-
-    The output is a plot.
     """
-    df = Pd.pdframe(file_name)
-    cdf = Pd.clean_df(df)
-    tdf = Pd.tfidf_df(cdf)
+    df = pdframe(file_name)
+    cdf = clean_df(df)
+    tdf = tfidf_df(cdf)
 
     # initialize kmeans with num_of_cluster centroids
     kmeans = KMeans(n_clusters=num_of_cluster, random_state=50)
@@ -112,35 +123,30 @@ def cluster(file_name: str , num_of_cluster: int) -> plt:
     df["clusters"] = clusters
     return clusters
 
-# using t_SNE to lower the dimensions
-# this lower the dimensions of datapoint using t_SNE
+# using tsne to lower the dimensions
+# this lower the dimensions of datapoint using t_sne
 def lower_d(file_name: str):
-    """
-    Dimension reduction using t_SNE.
-    """
-    df = Pd.pdframe(file_name)
-    cdf = Pd.clean_df(df)
-    tdf = Pd.tfidf_df(cdf)
+    df = pdframe(file_name)
+    cdf = clean_df(df)
+    tdf = tfidf_df(cdf)
 
-    tsne = TSNE()
+    tsne = TSNE(n_components=2, verbose=1, perplexity=50, n_iter=1000, learning_rate=200)
     tsne_obj = tsne.fit_transform(tdf)
-
+    # tsne_df = pd.DataFrame({'X':tsne_obj[:,0],
+    #                     'Y':tsne_obj[:,1]})
     x0 = tsne_obj[:, 0]
     x1 = tsne_obj[:, 1]
     df['x0'] = x0
     df['x1'] = x1
-    return x0, x1, tsne_obj
+    return x0,x1,df
 
 # this lower the dimensions of datapoint using pca
 def lower_d_pca(file_name: str):
-    """
-    Dimension reduction using PCA.
-    """
-    df = Pd.pdframe(file_name)
-    cdf = Pd.clean_df(df)
-    tdf = Pd.tfidf_df(cdf)
-    pca = PCA(n_components=2, random_state=42)
-    # pass our X to the pca and store the reduced vectors into pca_vecs
+    df = pdframe(file_name)
+    cdf = clean_df(df)
+    tdf = tfidf_df(cdf)
+    pca = PCA(n_components=2, random_state = 42)
+    # pass our tdf to the pca and store the reduced vectors into pca_vecs
     pca_vecs = pca.fit_transform(tdf.toarray())
     # save our two dimensions into x0 and x1
     x0 = pca_vecs[:, 0]
@@ -148,97 +154,28 @@ def lower_d_pca(file_name: str):
     df['x0'] = x0
     df['x1'] = x1
     return x0, x1, pca_vecs
-
+  
 
 def keywords_in_cluster(file_name: str, clusters, n_terms: int):
     """This function returns the keywords for each centroid of the KMeans"""
-    df = Pd.pdframe(file_name)
-    cdf = Pd.clean_df(df)
-    vectorizer = TfidfVectorizer(sublinear_tf=True, min_df=5, max_df=0.95)
+    df = pdframe(file_name)
+    cdf = clean_df(df)
+    vectorizer = TfidfVectorizer(sublinear_tf=True, min_df=5)
     tdf = vectorizer.fit_transform(cdf["cleaned"])
     ddf = pd.DataFrame(tdf.todense()).groupby(clusters).mean() # groups the TF-IDF vector by cluster
-    terms = vectorizer.get_feature_names() # access tf-idf terms
+    terms = vectorizer.get_feature_names_out() # access tf-idf terms
     for i,r in ddf.iterrows():
         print('\nCluster {}'.format(i))
-        print(','.join([terms[t] for t in np.argsort(r)[-n_terms:]])) # for each row of the dataframe, find the n terms that have the highest tf idf score
-"""
-Example output:
-cluster_map_2019 = {0: "General Comments", 1: "Learning Gains", 2: "Class Activities", 3:"Homework", 4:"Participation", 5:"Learning Resources", 6:"Graded Assignments & Test", 7:"Practical", 8:"Applying Skills", 9:"Suggestions", 10:"Use of Piazza", 11:"Understanding of Class Content"}
-cluster_map_2020 = {0:"Course Structure", 1:"Supports", 2:"Learning Resources", 3:"Participation", 4:"Problem Solving", 5:"Study Methods", 6:"Applying Skills", 7:"Understanding of Class Content", 8:"Practical", 9:"Learning Gain", 10:"Online Class"}
-cluster_map_2021 = {0:"Graded Assignment & Test", 1:"Participation and Lecture Location", 2:"Understanding of Class Content", 3:"Practical", 4:"Learning Methods", 5:"General Comments", 6:"Attitude", 7:"Applying Skills", 8:"Learning Resources", 9:"Suggestions"}
-"""
+        print(','.join([terms[t] for t in np.argsort(r)[-n_terms:]])) 
 
-# use the following code to display results from kmeans clustering
-# map clusters to appropriate labels
-# to use, please uncommented the code
-"""
-df = Pd.pdframe("SALG-shorten-winter2019.CSV")
-cdf = Pd.clean_df(df)
-tdf = Pd.tfidf_df(cdf)
-pca = PCA(n_components=10)
-X_pca = pca.fit_transform(tdf.toarray()) 
-tsne = TSNE(n_components=2, verbose=1, perplexity=30, n_iter=5000, learning_rate=100)
-tsne_results = tsne.fit_transform(X_pca)
-df["x0"] = tsne_results[:, 0]
-df["x1"] = tsne_results[:, 1]
-
-clustering = Pd.cluster("SALG-shorten-winter2019.CSV", 12)
-df["Cluster"] = clustering
-cluster_map = {0: "General Comments", 1: "Learning Gains", 2: "Class Activities", 3:"Homework", 4:"Participation", 5:"Learning Resources", 6:"Graded Assignments & Test", 7:"Practical", 8:"Applying Skills", 9:"Suggestions", 10:"Use of Piazza", 11:"Understanding of Class Content"}
-# apply mapping
-df['Cluster'] = df['Cluster'].map(cluster_map)
-
-plt.figure(figsize=(10, 5))
-# set a title
-plt.title("K-means Clustering of PHY132 Students' Free Responses in Winter 2019 SALG Survey", fontdict={"fontsize": 18})
-# set axes names
-plt.xlabel("comp1", fontdict={"fontsize": 16})
-plt.ylabel("comp2", fontdict={"fontsize": 16})
-# create scatter plot with seaborn, where hue is the class used to group the data
-sns.scatterplot(data=df, x="x0", y='x1', hue='Cluster', palette = "Paired")
-plt.legend(bbox_to_anchor=(1.02, 1), loc='upper left', borderaxespad=0)
-plt.show()
-"""
 
 # use the method below to find the frequent words in the whole dataset
 def keywords(file_name: str, n_term: int):
-    lst = Pd.extract_all(file_name)
-    flatten_list = Pd.flatten(lst)
-    text = Pd.one_long_string(flatten_list)
-    cleaned_text = Pd.clean_text(text)
+    lst = extract_all(file_name)
+    text = one_long_string(lst)
+    ltext = text.lower()
+    cleaned_text = clean_text(ltext)
     counting = Counter(cleaned_text)
     keyword = counting.most_common(n_term)
     return keyword
 
-# use the method below to create a barplot for the most frequent words
-def keywords_plot(keywords: list[tuple]):
-    df = pd.DataFrame(keywords, columns =["Word", "Count"])
-    #mp = df.plot(x="Word", y="Count", kind="bar", figsize=(10, 9), color = "")
-
-# displaying bar graph
-    #mp.show()
-    p = df.plot.barh(x='Word', y='Count',
-                     title="Counts for the Top 10 Most Frequent Words",
-                     figsize=(10, 9));
-
-    p.show(block=True)
-
-
-def nice_pf(file_name: str, num_of_cluster: int):
-    """ This produce a data frame with the original student responses,
-    the cleaned students' responses, the cluster, and the x0 and x1 component
-    of the vector.
-    """
-    df = Pd.pdframe(file_name)
-    cdf = Pd.clean_df(df)
-    clusters = cluster(file_name, num_of_cluster)
-    cdf["clusters"] = clusters
-    return cdf
-
-def find_sentence(good_pf, location: int, word: str):
-    df = good_pf.loc[good_pf["clusters"] == location]
-    sentence = []
-    for row in df['Responses']:
-        if word in row:
-            sentence.append(row)
-    return sentence
