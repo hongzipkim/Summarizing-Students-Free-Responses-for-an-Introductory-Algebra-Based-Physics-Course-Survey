@@ -152,6 +152,9 @@ def count_sentiment_neu_percentage(first: str, second: str, third: str):
 
 
 def stacked_barplot():
+    """
+    Function to generate the stacked barplot.
+    """
     positive = [count_sentiment_pos_percentage('winter2019_understanding.csv', 'winter2020_understanding.csv',
                                                'winter2021_understanding.csv'),
                 count_sentiment_pos_percentage('winter2019_skill.csv', 'winter2020_skill.csv',
