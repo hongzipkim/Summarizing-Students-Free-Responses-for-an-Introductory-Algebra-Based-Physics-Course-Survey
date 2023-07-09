@@ -11,6 +11,9 @@ from matplotlib.patches import PathPatch
 
 
 def get_the_total_data(title: str, first: str, second: str, third: str):
+    """ 
+    Collect all of the Likert-scale, and free responses of students that responded to both types of questions
+    """
     winter2019_likert = sta.nested_list_of_likert(first)
     winter2020_likert = sta.nested_list_of_likert(second)
     winter2021_likert = sta.nested_list_of_likert(third)
