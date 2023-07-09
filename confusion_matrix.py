@@ -1,12 +1,16 @@
 """
-This file contains code necessary to produce a confusion matrix.
+This file contains code necessary to produce results for a confusion matrix. 
+The data is collected, and a table is made on an external document to showcase the results.
 """
 import csv
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 
 
 def open_file(file: str):
-    """ Opens the SALG data file and creates a nested list tuple with the following format: (text, sentiment)."""
+    """ 
+    Opens the SALG data file and creates a nested list tuple with the following format: (text, sentiment).
+    'p' represents "postive", 'n' represents "netural", and 'ne' represents "negative"
+    """
     listy = []
     with open(file) as csvfile:
         reader = csv.reader(csvfile)
@@ -29,12 +33,12 @@ def analyze_confusion_matrix():
     tp = 0
     fp1 = 0
     fp2 = 0
-    fng1 = 0
     tng = 0
+    fng1 = 0
     fng2 = 0
+    tnt = 0
     fnt1 = 0
     fnt2 = 0
-    tnt = 0
 
     sid_obj = SentimentIntensityAnalyzer()
     listy = []
@@ -42,7 +46,6 @@ def analyze_confusion_matrix():
         sentiment_dict = sid_obj.polarity_scores(item[0])
         if sentiment_dict['compound'] >= 0.05:
             listy.append('p')
-
         elif sentiment_dict['compound'] <= - 0.05:
             listy.append('ne')
         else:
