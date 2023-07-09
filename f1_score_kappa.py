@@ -1,6 +1,7 @@
 """
 This file contains the code to calculate the F1 score for VADER sentiment vs. human sentiment labelling,
-and to calculate the Inter-Annotator Agreement (IAA) using the kappa coefficient"""
+and to calculate the Inter-Annotator Agreement (IAA) using the kappa coefficient
+"""
 import csv
 import random
 import pandas as pd
