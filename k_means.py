@@ -305,5 +305,60 @@ plt.ylabel("comp2 of t-SNE", fontdict={"fontsize": 16})
 sns.scatterplot(data=df, x="x0", y='x1', hue='Cluster', palette = "Paired")
 plt.legend(bbox_to_anchor=(1.02, 1), loc='upper left', borderaxespad=0)
 plt.show()
-##########################################################################################
 
+################################################################################
+# Now we generate a summary of a certain cluster that you want to analyze for a particular year
+pf2019 = nice_pf("SALG-shorten-winter2019.CSV", 12)
+# The input text now becomes:
+text = one_long_string(get_sentence_in_cluster(pf2019, 4)), # 4 signifies we want to generate a summary for the fourth clusters in the cluster result of 2019 data
+stopWords = set(stopwords.words("english"))
+words = word_tokenize(text)
+
+freqTable = dict()
+for word in words:
+    word = word.lower()
+    if word in stopWords:
+        continue
+    if word in freqTable:
+        freqTable[word] += 1
+    else:
+        freqTable[word] = 1
+
+sentences = sent_tokenize(text)
+sentenceValue = dict()
+
+for sentence in sentences:
+    for word, freq in freqTable.items():
+        if word in sentence.lower():
+            if sentence in sentenceValue:
+                sentenceValue[sentence] += freq
+            else:
+                sentenceValue[sentence] = freq
+
+sumValues = 0
+for sentence in sentenceValue:
+    sumValues += sentenceValue[sentence]
+
+average = int(sumValues / len(sentenceValue))
+
+summary = ''
+count = 0
+for sentence in sentences:
+    if (sentence in sentenceValue) and (sentenceValue[sentence] > (1.3 * average)):
+      if count <= 5 and count != 0:
+        if sentence[-1:] == '.':
+          summary = summary + " " + sentence
+        elif sentence[-1:] != '.':
+          summary = summary + " " + sentence + ". "
+      elif count <= 5 and count == 0:
+        if sentence[-1:] == '.':
+          summary = sentence
+        elif sentence[-1:] != '.':
+          summary = sentence + ". "
+      count += 1
+print(summary)
+################################################################################
+# In addition, we can use the 'find_sentence' function to find sentences containing a particular keyword in a given cluster
+# Here is an example
+pf2021 = nice_pf("SALG-shorten-winter2021.CSV", 10)
+find_sentence(pf2021, 3, "study") # where 3 signifies the third cluster and 'study' is the keyword
