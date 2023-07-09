@@ -99,6 +99,7 @@ def f1_vader(file1: str, file2: str):
     # note: change 'micro' to 'macro' if calculating the macro F1 score
     return f1_score(listy, rater2, average='micro')
 
+
 def kappa_iaa(file1: str, file2: str):
     """Calculates the Kappa coefficient between human annotator vs. human annotator"""
 
