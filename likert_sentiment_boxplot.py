@@ -99,6 +99,7 @@ def new_boxplot():
     adjust_box_widths(fig, 0.9)
     plt.legend(bbox_to_anchor=(1.02, 1), loc='upper left', borderaxespad=0, fontsize=13)
 
+
 def merge_dictionaries(dict1, dict2):
     merged_dictionary = {}
 
